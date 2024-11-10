@@ -162,4 +162,16 @@
   </div>
 {/each}
 
-<div>{translations[$language].createdBy}</div>
+<div>
+  <p>{translations[$language].createdBy}</p>
+  <hr>
+  <p>Here you can enter which washing machines work and which do not. You can also specify until when your washing machine is running, so that nobody has to run to the cellar just to find no free washing machine. Everything is completely anonymous. The more of us who use this, the better.</p>
+  <p>Source code: <a href="https://github.com/h43lb1t0/MB1-Waschmaschienen">Github</a></p> 
+  <hr>
+  <div>
+    <h4>Impressum:</h4>
+    <p>Tom Haelbich</p>
+    <p>Marksburgstr. 1</p>
+    <p>10318 Berlin</p>
+  </div>
+</div>
