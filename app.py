@@ -1,11 +1,10 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import sqlite3
 import datetime
 
 app = Flask(__name__)
-CORS(app)
-
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 DATABASE = 'washing_machines.db'
 
 def get_db_connection():
@@ -39,6 +38,7 @@ def init_db():
 
 
 @app.route('/machines', methods=['GET'])
+@cross_origin()
 def get_machines():
     conn = get_db_connection()
     machines = conn.execute('SELECT * FROM machines').fetchall()
@@ -46,6 +46,7 @@ def get_machines():
     return jsonify([dict(machine) for machine in machines])
 
 @app.route('/machines/<int:machine_id>', methods=['PUT'])
+@cross_origin()
 def update_machine(machine_id):
     data = request.get_json()
     status = data.get('status')
@@ -65,4 +66,4 @@ def update_machine(machine_id):
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True)
+    app.run()

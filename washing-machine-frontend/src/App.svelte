@@ -3,7 +3,7 @@
   import { writable } from 'svelte/store';
 
   const machines = writable([]);
-  const apiUrl = 'http://127.0.0.1:5000/machines';
+  const apiUrl = 'https://mb1-api.haelbich.org/machines';
 
   const language = writable('en');
 
