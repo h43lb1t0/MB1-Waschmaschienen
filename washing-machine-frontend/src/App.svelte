@@ -4,7 +4,7 @@
 
   const machines = writable([]);
   const apiUrl = import.meta.env.VITE_API_URL;
-  const isDev = import.meta.env.VITE_IS_DEV;
+  const isDev = import.meta.env.VITE_IS_DEV === 'true';
 
   const initialLanguage = localStorage.getItem('preferredLanguage') || 'en';
   const language = writable(initialLanguage);
