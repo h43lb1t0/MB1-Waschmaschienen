@@ -101,7 +101,7 @@
   }
 
   function handleUsageDurationChange(machine, hours, minutes) {
-    const usageDuration = ((hours || 0) * 60) + minutes;
+    const usageDuration = ((hours || 0) * 60) + (minutes || 0);
     if (hours === 0 && minutes === 0) {
       alert(translations[$language].alert);
       return;
@@ -129,81 +129,123 @@
     const date = new Date(dateString);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
+
+  function enforceNumberInput(event) {
+  const key = event.key;
+  if (!/^[0-9]$/.test(key) && key !== 'Backspace' && key !== 'Delete' && key !== 'ArrowLeft' && key !== 'ArrowRight') {
+    event.preventDefault();
+  }
+}
+
 </script>
 
 <style>
-  .machine {
-    border: 1px solid #ccc;
-    padding: 1em;
-    margin-bottom: 1em;
+  .no-arrows::-webkit-outer-spin-button,
+  .no-arrows::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 
-  .language-toggle {
-    margin-bottom: 1em;
+  .no-arrows {
+    -moz-appearance: textfield;
   }
 </style>
 
-<div class="language-toggle">
-  <label for="language">Select Language:</label>
-  <select id="language" bind:value={$language}>
-    <option value="en">English</option>
-    <option value="de">Deutsch</option>
-    <option value="ru">Русский</option>
-  </select>
-</div>
-
-<h1>{translations[$language].title}</h1>
-<p>{translations[$language].info}</p>
-
-{#if isDev}
-  <p>API URL: {apiUrl}</p>
-  <p>DEV MODE</p>
-{/if}
-
-{#if $machines.length === 0}
-  <p>No machines available at the moment.</p>
-{/if}
-
-{#each $machines as machine (machine.id)}
-  <div class="machine">
-    <h2>{machine.name}</h2>
-    <label>
-      {translations[$language].status}:
-      <select bind:value={machine.status} on:change={(e) => handleStatusChange(machine, e)}>
-        <option value="working">{translations[$language].working}</option>
-        <option value="broken">{translations[$language].broken}</option>
+<div class="min-h-screen bg-gray-900 text-white py-6">
+  <div class="max-w-4xl mx-auto bg-gray-800 p-6 rounded-md shadow-md">
+    <div class="language-toggle mb-6 flex items-center">
+      <label for="language" class="mr-3">Select Language:</label>
+      <select id="language" class="border rounded-md p-2 bg-gray-700 text-white" bind:value={$language}>
+        <option value="en">English</option>
+        <option value="de">Deutsch</option>
+        <option value="ru">Русский</option>
       </select>
-    </label>
-    <div>
-      <label>
-        {translations[$language].usageFor}:
-        <input type="number" min="0" max="4" placeholder="Hours (optional)" id="hours" bind:value={machine.hours} />
-        <input type="number" min="0" max="59" placeholder="Minutes" id="minutes" bind:value={machine.minutes} required />
-        <button on:click={() => handleUsageDurationChange(machine, parseInt(machine.hours), parseInt(machine.minutes))}>Set Duration</button>
-      </label>
     </div>
-    {#if machine.usage_until}
-      {#if getTimeDifference(machine.usage_until) > 0}
-        <p>{translations[$language].timeRemaining}: {getTimeDifference(machine.usage_until)} minutes</p>
-        <p>{translations[$language].doneAt}: {formatTime(machine.usage_until)}</p>
-      {:else}
-        <p>{translations[$language].timeElapsed}: {getTimeDifference(machine.usage_until)} minutes</p>
-      {/if}
-    {/if}
-    <button on:click={() => { machine.usage_until = null; machine.start_time = null; updateMachine(machine); }}>{translations[$language].finished}</button>
-  </div>
-{/each}
 
-<div>
-  <p>{translations[$language].createdBy}</p>
-  <hr>
-  <p>Here you can enter which washing machines work and which do not. You can also specify until when your washing machine is running, so that nobody has to run to the cellar just to find no free washing machine. Everything is completely anonymous. The more of us who use this, the better.</p>
-  <p>Source code: <a href="https://github.com/h43lb1t0/MB1-Waschmaschienen">Github</a></p> 
-  <hr>
-  <div>
-    <h4>Impressum:</h4>
-    <p>Tom Haelbich</p>
-    <p>Marksburgstr. 1</p>
-    <p>10318 Berlin</p>
+    <h1 class="text-2xl font-bold mb-4">{translations[$language].title}</h1>
+    <p class="text-sm text-gray-400 mb-6">{translations[$language].info}</p>
+
+    {#if isDev}
+      <p class="text-sm text-red-500">API URL: {apiUrl}</p>
+      <p class="text-sm text-red-500 mb-6">DEV MODE</p>
+    {/if}
+
+    {#if $machines.length === 0}
+      <p class="text-gray-500">No machines available at the moment.</p>
+    {/if}
+
+    <div class="container grid grid-cols-1 md:grid-cols-2 gap-6">
+      {#each $machines as machine (machine.id)}
+        <div class="bg-gray-700 p-4 rounded-md shadow border border-gray-600">
+          <h2 class="text-xl font-semibold mb-2">{machine.name}</h2>
+          <label class="block mb-2">
+            <span class="text-sm font-medium">{translations[$language].status}:</span>
+            <select
+              class="border p-2 rounded-md w-full bg-gray-600 text-white" 
+              bind:value={machine.status} 
+              on:change={(e) => handleStatusChange(machine, e)}>
+                <option value="working">{translations[$language].working}</option>
+                <option value="broken">{translations[$language].broken}</option>
+            </select>
+          </label>
+          <div class="mt-4">
+            <label class="block mb-4">
+              <span class="text-sm font-medium">{translations[$language].usageFor}:</span>
+              <div class="flex items-center space-x-2 mt-2">
+                <input 
+                  type="number" 
+                  min="0" 
+                  max="4" 
+                  placeholder="Hours (optional)" 
+                  id="hours" 
+                  class="no-arrows border p-2 rounded-md w-24 bg-gray-600 text-white" 
+                  bind:value={machine.hours} 
+                  on:keydown={enforceNumberInput}
+                />
+                <input 
+                  type="number" 
+                  min="0" 
+                  max="59" 
+                  placeholder="Minutes" 
+                  id="minutes" 
+                  class="no-arrows border p-2 rounded-md w-24 bg-gray-600 text-white" 
+                  bind:value={machine.minutes} 
+                  on:keydown={enforceNumberInput}
+                />
+                <button 
+                  class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600" 
+                  on:click={() => handleUsageDurationChange(machine, parseInt(machine.hours), parseInt(machine.minutes))}
+                >Set Duration</button>
+              </div>
+            </label>
+          </div>
+          {#if machine.usage_until}
+            <div class="mt-4">
+              {#if getTimeDifference(machine.usage_until) > 0}
+                <p class="text-sm text-green-400">{translations[$language].timeRemaining}: {getTimeDifference(machine.usage_until)} minutes</p>
+                <p class="text-sm text-green-400">{translations[$language].doneAt}: {formatTime(machine.usage_until)}</p>
+              {:else}
+                <p class="text-sm text-red-400">{translations[$language].timeElapsed}: {getTimeDifference(machine.usage_until)} minutes</p>
+              {/if}
+            </div>
+            <button class="bg-red-500 text-white py-2 px-4 mt-4 rounded-md hover:bg-red-600" on:click={() => { machine.usage_until = null; machine.start_time = null; updateMachine(machine); }}>{translations[$language].finished}</button>
+          {/if}
+        </div>
+      {/each}
+    </div>
+
+    <div class="mt-12">
+      <p class="text-sm text-gray-500">{translations[$language].createdBy}</p>
+      <hr class="my-6">
+      <p class="text-gray-400 mb-4">Here you can enter which washing machines work and which do not. You can also specify until when your washing machine is running, so that nobody has to run to the cellar just to find no free washing machine. Everything is completely anonymous. The more of us who use this, the better.</p>
+      <p class="text-blue-400"><a href="https://github.com/h43lb1t0/MB1-Waschmaschienen" target="_blank" class="hover:underline">Source code: Github</a></p>
+      <hr class="my-6">
+      <div>
+        <h4 class="text-lg font-semibold mb-2">Impressum:</h4>
+        <p class="text-sm">Tom Haelbich</p>
+        <p class="text-sm">Marksburgstr. 1</p>
+        <p class="text-sm">10318 Berlin</p>
+      </div>
+    </div>
   </div>
 </div>
