@@ -7,7 +7,7 @@
   const isDev = import.meta.env.VITE_IS_DEV;
 
   const language = writable('en');
-
+  
   const translations = {
     en: {
       title: 'Washing Machine Status',
@@ -102,7 +102,7 @@
 
   function handleUsageDurationChange(machine, hours, minutes) {
     const usageDuration = ((hours || 0) * 60) + (minutes || 0);
-    if (hours === 0 && minutes === 0) {
+    if ((hours === 0 && minutes === 0) || minutes >= 60) {
       alert(translations[$language].alert);
       return;
     }
