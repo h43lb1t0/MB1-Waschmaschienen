@@ -3,7 +3,8 @@
   import { writable } from 'svelte/store';
 
   const machines = writable([]);
-  const apiUrl = 'https://mb1-api.haelbich.org/machines';
+  const apiUrl = import.meta.env.VITE_API_URL;
+  const isDev = import.meta.env.VITE_IS_DEV;
 
   const language = writable('en');
 
@@ -12,34 +13,43 @@
       title: 'Washing Machine Status',
       status: 'Status',
       info: 'The information here is of course not 100% reliable.',
-      usageUntil: 'Usage Until',
+      usageFor: 'Usage Duration (hours and minutes)',
       working: 'Working',
       broken: 'Broken',
       finished: 'Finished',
-      alert: 'The selected time must be at least the current time.',
+      alert: 'The duration must be greater than zero.',
       createdBy: 'Created by Tom (E05)',
+      timeRemaining: 'Time Remaining',
+      timeElapsed: 'Done since',
+      doneAt: 'Will be done at',
     },
     de: {
       title: 'Status der Waschmaschinenen',
       status: 'Status',
       info: 'Die Informationen hier sind natürlich nicht 100%ig zuverlässig.',
-      usageUntil: 'Nutzung bis',
+      usageFor: 'Nutzungsdauer (Stunden und Minuten)',
       working: 'Funktioniert',
       broken: 'Defekt',
       finished: 'Fertig',
-      alert: 'Die ausgewählte Zeit muss mindestens die aktuelle Zeit sein.',
+      alert: 'Die Dauer muss größer als null sein.',
       createdBy: 'Erstellt von Tom (E05)',
+      timeRemaining: 'Verbleibende Zeit',
+      timeElapsed: 'Fertig seit',
+      doneAt: 'Fertig um',
     },
     ru: {
       title: 'Статус стиральной машины',
       status: 'Статус',
       info: 'Разумеется, информация здесь не является на 100% достоверной.',
-      usageUntil: 'Использование до',
+      usageFor: 'Длительность использования (часы и минуты)',
       working: 'Работает',
       broken: 'Неисправна',
       finished: 'Завершено',
-      alert: 'Выбранное время должно быть минимум текущим временем.',
+      alert: 'Длительность должна быть больше нуля.',
       createdBy: 'Создано Томом (E05)',
+      timeRemaining: 'Осталось времени',
+      timeElapsed: 'Выполнено с тех пор',
+      doneAt: 'Будет готово в',
     },
   };
 
@@ -70,7 +80,8 @@
         },
         body: JSON.stringify({
           status: machine.status,
-          usage_until: machine.usage_until
+          usage_until: machine.usage_until,
+          start_time: machine.start_time
         })
       });
 
@@ -89,21 +100,34 @@
     updateMachine(machine);
   }
 
-  function handleUsageUntilChange(machine, event) {
-    const newTime = event.target.value;
-    const currentTime = getCurrentTime();
-
-    if (newTime >= currentTime) {
-      machine.usage_until = newTime;
+  function handleUsageDurationChange(machine, hours, minutes) {
+    const usageDuration = ((hours || 0) * 60) + minutes;
+    if (hours === 0 && minutes === 0) {
+      alert(translations[$language].alert);
+      return;
+    }
+    if (usageDuration > 0) {
+      const startTime = new Date();
+      const usageUntil = new Date(startTime.getTime() + usageDuration * 60000);
+      machine.start_time = startTime.toISOString();
+      machine.usage_until = usageUntil.toISOString();
       updateMachine(machine);
     } else {
       alert(translations[$language].alert);
     }
   }
 
-  function getCurrentTime() {
+  function getTimeDifference(endTime) {
     const now = new Date();
-    return now.toISOString().slice(11, 16); // Returns HH:MM format in 24-hour time
+    const end = new Date(endTime);
+    const diffMs = end - now;
+    const diffMinutes = Math.floor(diffMs / 60000);
+    return diffMinutes;
+  }
+
+  function formatTime(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 </script>
 
@@ -131,6 +155,11 @@
 <h1>{translations[$language].title}</h1>
 <p>{translations[$language].info}</p>
 
+{#if isDev}
+  <p>API URL: {apiUrl}</p>
+  <p>DEV MODE</p>
+{/if}
+
 {#if $machines.length === 0}
   <p>No machines available at the moment.</p>
 {/if}
@@ -147,18 +176,21 @@
     </label>
     <div>
       <label>
-        {translations[$language].usageUntil}:
-        <input 
-          type="time" 
-          bind:value={machine.usage_until} 
-          min={getCurrentTime()}
-          on:change={(e) => handleUsageUntilChange(machine, e)} 
-        />
+        {translations[$language].usageFor}:
+        <input type="number" min="0" max="4" placeholder="Hours (optional)" id="hours" bind:value={machine.hours} />
+        <input type="number" min="0" max="59" placeholder="Minutes" id="minutes" bind:value={machine.minutes} required />
+        <button on:click={() => handleUsageDurationChange(machine, parseInt(machine.hours), parseInt(machine.minutes))}>Set Duration</button>
       </label>
-      <button on:click={() => { machine.usage_until = null; updateMachine(machine); }}>{translations[$language].finished}</button>
     </div>
-    <p>{translations[$language].status}: {machine.status}</p>
-    <p>{translations[$language].usageUntil}: {machine.usage_until ? machine.usage_until : 'Not in use'}</p>
+    {#if machine.usage_until}
+      {#if getTimeDifference(machine.usage_until) > 0}
+        <p>{translations[$language].timeRemaining}: {getTimeDifference(machine.usage_until)} minutes</p>
+        <p>{translations[$language].doneAt}: {formatTime(machine.usage_until)}</p>
+      {:else}
+        <p>{translations[$language].timeElapsed}: {getTimeDifference(machine.usage_until)} minutes</p>
+      {/if}
+    {/if}
+    <button on:click={() => { machine.usage_until = null; machine.start_time = null; updateMachine(machine); }}>{translations[$language].finished}</button>
   </div>
 {/each}
 
