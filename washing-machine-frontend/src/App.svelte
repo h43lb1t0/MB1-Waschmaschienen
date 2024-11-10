@@ -6,7 +6,8 @@
   const apiUrl = import.meta.env.VITE_API_URL;
   const isDev = import.meta.env.VITE_IS_DEV;
 
-  const language = writable('en');
+  const initialLanguage = localStorage.getItem('preferredLanguage') || 'en';
+  const language = writable(initialLanguage);
   
   const translations = {
     en: {
@@ -53,8 +54,14 @@
     },
   };
 
-  onMount(async () => {
-    await fetchMachines();
+  // Load the preferred language from localStorage when the component mounts
+  onMount(() => {
+    fetchMachines();
+  });
+
+  // Watch for changes to the language store and save them to localStorage
+  language.subscribe((value) => {
+    localStorage.setItem('preferredLanguage', value);
   });
 
   async function fetchMachines() {
