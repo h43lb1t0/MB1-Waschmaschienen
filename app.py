@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
+from flask_socketio import SocketIO, emit
 import sqlite3
-import datetime
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+socketio = SocketIO(app, cors_allowed_origins="*")  # Initialize SocketIO
+
 DATABASE = 'washing_machines.db'
 
 def get_db_connection():
@@ -24,7 +26,6 @@ def init_db():
             usage_until TEXT
         )
     ''')
-    # Check if machines are already in the table before inserting
     cursor.execute('SELECT COUNT(*) FROM machines')
     if cursor.fetchone()[0] == 0:
         cursor.executemany('''
@@ -35,7 +36,6 @@ def init_db():
               ('Machine 4', 'working', None)])
     conn.commit()
     conn.close()
-
 
 @app.route('/machines', methods=['GET'])
 @cross_origin()
@@ -62,8 +62,11 @@ def update_machine(machine_id):
     conn.commit()
     conn.close()
 
+    # Emit an update event to notify the frontend
+    socketio.emit('machine_update', {'id': machine_id, 'status': status, 'usage_until': usage_until})
+
     return jsonify({'message': 'Machine updated successfully'})
 
 if __name__ == '__main__':
     init_db()
-    app.run()
+    socketio.run(app, debug=True)

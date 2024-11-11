@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
+  import { io } from 'socket.io-client';
   import translations from './i18n/translations.js';
 
   const machines = writable([]);
@@ -10,9 +11,33 @@
   const initialLanguage = localStorage.getItem('preferredLanguage') || 'en';
   const language = writable(initialLanguage);
   
+  
+
+  let socket;
 
   onMount(() => {
+    // Connect to Socket.IO
+    socket = io("http://127.0.0.1:5000");
+
+
+    // Fetch initial machine data
     fetchMachines();
+
+    // Listen for real-time updates from the server
+    socket.on('machine_update', (updatedMachine) => {
+      machines.update((currentMachines) => {
+        return currentMachines.map((machine) => 
+          machine.id === updatedMachine.id ? { ...machine, ...updatedMachine } : machine
+        );
+      });
+    });
+
+    return () => {
+      // Clean up socket connection when the component is destroyed
+      if (socket) {
+        socket.disconnect();
+      }
+    };
   });
 
   language.subscribe((value) => {
@@ -21,7 +46,7 @@
 
   async function fetchMachines() {
     try {
-      const response = await fetch(apiUrl);
+      const response = await fetch(apiUrl+'/machines');
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -29,13 +54,13 @@
       machines.set(data);
     } catch (error) {
       console.error('Failed to fetch machines:', error);
-      machines.set([]); 
+      machines.set([]);
     }
   }
 
   async function updateMachine(machine) {
     try {
-      const response = await fetch(`${apiUrl}/${machine.id}`, {
+      const response = await fetch(`${apiUrl}/machines/${machine.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -51,7 +76,7 @@
         throw new Error('Failed to update machine');
       }
 
-      await fetchMachines();
+      // The server will send a socket event, so no need to manually fetch machines
     } catch (error) {
       console.error('Failed to update machine:', error);
     }
