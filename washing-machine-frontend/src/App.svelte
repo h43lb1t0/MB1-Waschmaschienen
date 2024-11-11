@@ -11,16 +11,11 @@
   const initialLanguage = localStorage.getItem('preferredLanguage') || 'en';
   const language = writable(initialLanguage);
   
-  
-
   let socket;
 
   onMount(() => {
-    // Connect to Socket.IO
     socket = io(apiUrl);
 
-
-    // Fetch initial machine data
     fetchMachines();
 
     // Listen for real-time updates from the server
@@ -33,7 +28,6 @@
     });
 
     return () => {
-      // Clean up socket connection when the component is destroyed
       if (socket) {
         socket.disconnect();
       }
@@ -192,20 +186,37 @@
                 <button 
                   class="set-duration-button" 
                   on:click={() => handleUsageDurationChange(machine, parseInt(machine.hours), parseInt(machine.minutes))}
-                >{translations[$language].setDuration}</button>
+                >
+                  {translations[$language].setDuration}
+                </button>
               </div>
             </label>
           </div>
           {#if machine.usage_until}
             <div class="mt-4">
               {#if getTimeDifference(machine.usage_until) > 0}
-                <p class="text-sm text-green-400">{translations[$language].timeRemaining}: {getTimeDifference(machine.usage_until)} minutes</p>
-                <p class="text-sm text-green-400">{translations[$language].doneAt}: {formatTime(machine.usage_until)}</p>
+                <p class="text-sm text-green-400">
+                  {translations[$language].timeRemaining}: {getTimeDifference(machine.usage_until)} minutes
+                </p>
+                <p class="text-sm text-green-400">
+                  {translations[$language].doneAt}: {formatTime(machine.usage_until)}
+                </p>
               {:else}
-                <p class="text-sm text-red-400">{translations[$language].timeElapsed}: {getTimeDifference(machine.usage_until)} minutes</p>
+                <p class="text-sm text-red-400">
+                  {translations[$language].timeElapsed}: {getTimeDifference(machine.usage_until)} minutes
+                </p>
               {/if}
             </div>
-            <button class="done-button" on:click={() => { machine.usage_until = null; machine.start_time = null; updateMachine(machine); }}>{translations[$language].finished}</button>
+            <button
+              class="done-button" 
+              on:click={() => {
+                 machine.usage_until = null; 
+                 machine.start_time = null; 
+                 updateMachine(machine); }
+                }
+                >
+                 {translations[$language].finished}
+                </button>
           {/if}
         </div>
       {/each}
@@ -215,7 +226,15 @@
       <p class="text-sm text-gray-500">{translations[$language].createdBy}</p>
       <hr class="my-6">
       <p class="text-gray-400 mb-4">{translations[$language].about}</p>
-      <p class="text-blue-400"><a href="https://github.com/h43lb1t0/MB1-Waschmaschienen" target="_blank" class="hover:underline">Source code: Github</a></p>
+      <p 
+        class="text-blue-400">
+         <a
+          href="https://github.com/h43lb1t0/MB1-Waschmaschienen" 
+          target="_blank" 
+          class="hover:underline">
+            Source code: Github
+        </a>
+      </p>
       <hr class="my-6">
       <div>
         <h4 class="text-lg font-semibold mb-2">Impressum:</h4>
