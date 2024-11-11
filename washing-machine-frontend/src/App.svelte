@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
+  import translations from './i18n/translations.js';
 
   const machines = writable([]);
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -9,57 +10,11 @@
   const initialLanguage = localStorage.getItem('preferredLanguage') || 'en';
   const language = writable(initialLanguage);
   
-  const translations = {
-    en: {
-      title: 'Washing Machine Status',
-      status: 'Status',
-      info: 'The information here is of course not 100% reliable.',
-      usageFor: 'Usage Duration (hours and minutes)',
-      working: 'Working',
-      broken: 'Broken',
-      finished: 'Finished',
-      alert: 'The duration must be greater than zero.',
-      createdBy: 'Created by Tom (E05)',
-      timeRemaining: 'Time Remaining',
-      timeElapsed: 'Done since',
-      doneAt: 'Will be done at',
-    },
-    de: {
-      title: 'Status der Waschmaschinenen',
-      status: 'Status',
-      info: 'Die Informationen hier sind natürlich nicht 100%ig zuverlässig.',
-      usageFor: 'Nutzungsdauer (Stunden und Minuten)',
-      working: 'Funktioniert',
-      broken: 'Defekt',
-      finished: 'Fertig',
-      alert: 'Die Dauer muss größer als null sein.',
-      createdBy: 'Erstellt von Tom (E05)',
-      timeRemaining: 'Verbleibende Zeit',
-      timeElapsed: 'Fertig seit',
-      doneAt: 'Fertig um',
-    },
-    ru: {
-      title: 'Статус стиральной машины',
-      status: 'Статус',
-      info: 'Разумеется, информация здесь не является на 100% достоверной.',
-      usageFor: 'Длительность использования (часы и минуты)',
-      working: 'Работает',
-      broken: 'Неисправна',
-      finished: 'Завершено',
-      alert: 'Длительность должна быть больше нуля.',
-      createdBy: 'Создано Томом (E05)',
-      timeRemaining: 'Осталось времени',
-      timeElapsed: 'Выполнено с тех пор',
-      doneAt: 'Будет готово в',
-    },
-  };
 
-  // Load the preferred language from localStorage when the component mounts
   onMount(() => {
     fetchMachines();
   });
 
-  // Watch for changes to the language store and save them to localStorage
   language.subscribe((value) => {
     localStorage.setItem('preferredLanguage', value);
   });
@@ -74,7 +29,7 @@
       machines.set(data);
     } catch (error) {
       console.error('Failed to fetch machines:', error);
-      machines.set([]); // Set empty list if fetching fails
+      machines.set([]); 
     }
   }
 
@@ -138,12 +93,11 @@
   }
 
   function enforceNumberInput(event) {
-  const key = event.key;
-  if (!/^[0-9]$/.test(key) && key !== 'Backspace' && key !== 'Delete' && key !== 'ArrowLeft' && key !== 'ArrowRight') {
-    event.preventDefault();
+    const key = event.key;
+    if (!/^[0-9]$/.test(key) && key !== 'Backspace' && key !== 'Delete' && key !== 'ArrowLeft' && key !== 'ArrowRight') {
+      event.preventDefault();
+    }
   }
-}
-
 </script>
 
 <style>
@@ -161,7 +115,7 @@
 <div class="min-h-screen bg-gray-900 text-white py-6">
   <div class="max-w-4xl mx-auto bg-gray-800 p-6 rounded-md shadow-md">
     <div class="language-toggle mb-6 flex items-center">
-      <label for="language" class="mr-3">Select Language:</label>
+      <label for="language" class="mr-3">{translations[$language].selectLanguage}</label>
       <select id="language" class="border rounded-md p-2 bg-gray-700 text-white" bind:value={$language}>
         <option value="en">English</option>
         <option value="de">Deutsch</option>
@@ -173,12 +127,12 @@
     <p class="text-sm text-gray-400 mb-6">{translations[$language].info}</p>
 
     {#if isDev}
-      <p class="text-sm text-red-500">API URL: {apiUrl}</p>
-      <p class="text-sm text-red-500 mb-6">DEV MODE</p>
+      <p class="text-sm text-red-500">{translations[$language].apiUrl}: {apiUrl}</p>
+      <p class="text-sm text-red-500 mb-6">{translations[$language].devMode}</p>
     {/if}
 
     {#if $machines.length === 0}
-      <p class="text-gray-500">No machines available at the moment.</p>
+      <p class="text-gray-500">{translations[$language].noMachines}</p>
     {/if}
 
     <div class="container grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -203,7 +157,7 @@
                   type="number" 
                   min="0" 
                   max="4" 
-                  placeholder="Hours (optional)" 
+                  placeholder={translations[$language].hoursPlaceholder}
                   id="hours" 
                   class="no-arrows border p-2 rounded-md w-24 bg-gray-600 text-white" 
                   bind:value={machine.hours} 
@@ -213,7 +167,7 @@
                   type="number" 
                   min="0" 
                   max="59" 
-                  placeholder="Minutes" 
+                  placeholder={translations[$language].minutesPlaceholder}
                   id="minutes" 
                   class="no-arrows border p-2 rounded-md w-24 bg-gray-600 text-white" 
                   bind:value={machine.minutes} 
@@ -222,7 +176,7 @@
                 <button 
                   class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600" 
                   on:click={() => handleUsageDurationChange(machine, parseInt(machine.hours), parseInt(machine.minutes))}
-                >Set Duration</button>
+                >{translations[$language].setDuration}</button>
               </div>
             </label>
           </div>
@@ -244,7 +198,7 @@
     <div class="mt-12">
       <p class="text-sm text-gray-500">{translations[$language].createdBy}</p>
       <hr class="my-6">
-      <p class="text-gray-400 mb-4">Here you can enter which washing machines work and which do not. You can also specify until when your washing machine is running, so that nobody has to run to the cellar just to find no free washing machine. Everything is completely anonymous. The more of us who use this, the better.</p>
+      <p class="text-gray-400 mb-4">{translations[$language].about}</p>
       <p class="text-blue-400"><a href="https://github.com/h43lb1t0/MB1-Waschmaschienen" target="_blank" class="hover:underline">Source code: Github</a></p>
       <hr class="my-6">
       <div>
