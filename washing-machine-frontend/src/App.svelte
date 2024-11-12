@@ -27,10 +27,23 @@
       });
     });
 
+    const interval = setInterval(() => {
+      machines.update((currentMachines) => {
+        return currentMachines.map((machine) => {
+          if (machine.usage_until) {
+            const timeDifference = getTimeDifference(machine.usage_until);
+            return { ...machine, timeRemaining: timeDifference };
+          }
+          return machine;
+        });
+      });
+    }, 60000); // Update every minute
+
     return () => {
       if (socket) {
         socket.disconnect();
       }
+      clearInterval(interval);
     };
   });
 
@@ -102,7 +115,7 @@
     const now = new Date();
     const end = new Date(endTime);
     const diffMs = end - now;
-    const diffMinutes = Math.floor(diffMs / 60000);
+    const diffMinutes = Math.floor(diffMs / 60000) + 1;
     return diffMinutes;
   }
 
