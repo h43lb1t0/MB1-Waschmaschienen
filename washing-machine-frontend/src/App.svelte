@@ -37,7 +37,7 @@
           return machine;
         });
       });
-    }, 60000); // Update every minute
+    }, 30000); // Update every half minute
 
     return () => {
       if (socket) {
@@ -115,7 +115,7 @@
     const now = new Date();
     const end = new Date(endTime);
     const diffMs = end - now;
-    const diffMinutes = Math.floor(diffMs / 60000) + 1;
+    const diffMinutes = Math.ceil(diffMs / 60000);
     return diffMinutes;
   }
 
