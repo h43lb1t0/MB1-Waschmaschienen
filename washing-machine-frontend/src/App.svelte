@@ -10,6 +10,8 @@
 
   const initialLanguage = localStorage.getItem('preferredLanguage') || 'en';
   const language = writable(initialLanguage);
+
+  const knowsHowToUseWebsite = Boolean(localStorage.getItem('knowsHowToUseWebsite')) || false;
   
   let socket;
 
@@ -17,6 +19,11 @@
     socket = io(apiUrl);
 
     fetchMachines();
+
+    if (!knowsHowToUseWebsite) {
+      alert("How do I use this website?\n\nSpecify for the corresponding washing machine how long you will use it. Provide this in hours and minutes. When you are finished with the laundry, please press the 'Done' button so that everyone knows that the washing machine is truly available again.");
+      localStorage.setItem('knowsHowToUseWebsite', String(true));
+    }
 
     // Listen for real-time updates from the server
     socket.on('machine_update', (updatedMachine) => {
