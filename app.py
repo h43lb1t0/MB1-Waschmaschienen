@@ -3,10 +3,16 @@ from flask_cors import CORS, cross_origin
 from flask_socketio import SocketIO, emit
 import sqlite3
 import datetime
+import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
-socketio = SocketIO(app, cors_allowed_origins="*")  # Initialize SocketIO
+# Configure CORS based on environment
+if os.environ.get('FLASK_ENV') == 'production':
+    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+else:
+    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+    socketio = SocketIO(app, cors_allowed_origins="*")
 
 DATABASE = 'washing_machines.db'
 

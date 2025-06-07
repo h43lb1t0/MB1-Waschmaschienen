@@ -16,7 +16,9 @@
   let socket;
 
   onMount(() => {
-    socket = io(apiUrl);
+    // Ensure we're using the correct API URL for socket connection
+    const socketUrl = isDev ? apiUrl : window.location.origin;
+    socket = io(socketUrl);
 
     fetchMachines();
 
@@ -27,6 +29,7 @@
 
     // Listen for real-time updates from the server
     socket.on('machine_update', (updatedMachine) => {
+      console.log('Received machine update:', updatedMachine); // Debug log
       machines.update((currentMachines) => {
         return currentMachines.map((machine) => 
           machine.id === updatedMachine.id ? { 
