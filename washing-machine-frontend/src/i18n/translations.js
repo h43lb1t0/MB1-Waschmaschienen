@@ -20,6 +20,7 @@ const translations = {
       apiUrl: 'API URL',
       devMode: 'DEV MODE',
       about: 'Here you can indicate which washing machines are in use and which are out of order. You can also indicate until what time you use the washing machine, so that nobody has to go to the basement to find no free washing machine. Everything is completely anonymous. The more of us who use it, the better.',
+      lastStateChange: 'Last state change',
     },
     de: {
       title: 'Status der Waschmaschinenen',
@@ -42,6 +43,7 @@ const translations = {
       apiUrl: 'API URL',
       devMode: 'Entwicklungsmodus',
       about: 'Hier können Sie eingeben, welche Waschmaschinen funktionieren und welche nicht. Sie können auch angeben, wann Ihre Waschmaschine läuft, damit niemand in den Keller muss, nur um keine freie Waschmaschine zu finden. Alles ist völlig anonym. Je mehr von uns dies verwenden, desto besser.',
+      lastStateChange: 'Letzte Statusänderung',
     },
     ru: {
       title: 'Статус стиральной машины',
@@ -64,6 +66,7 @@ const translations = {
       apiUrl: 'API URL',
       devMode: 'Режим разработки',
       about: 'Здесь вы можете указать, какие стиральные машины используются, а какие нет. Вы также можете указать, до какого времени вы используете стиральную машину, так что никому не придется идти в подвал, чтобы найти свободную стиральную машину. Все абсолютно анонимно. Чем больше нас будет, тем лучше.',
+      lastStateChange: 'Последнее изменение статуса',
     },
   };
 

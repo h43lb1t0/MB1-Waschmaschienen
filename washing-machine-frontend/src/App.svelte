@@ -29,7 +29,11 @@
     socket.on('machine_update', (updatedMachine) => {
       machines.update((currentMachines) => {
         return currentMachines.map((machine) => 
-          machine.id === updatedMachine.id ? { ...machine, ...updatedMachine } : machine
+          machine.id === updatedMachine.id ? { 
+            ...machine, 
+            ...updatedMachine,
+            last_state_change: updatedMachine.last_state_change || new Date().toISOString()
+          } : machine
         );
       });
     });
@@ -82,7 +86,8 @@
         body: JSON.stringify({
           status: machine.status,
           usage_until: machine.usage_until,
-          start_time: machine.start_time
+          start_time: machine.start_time,
+          last_state_change: new Date().toISOString()
         })
       });
 
@@ -128,7 +133,13 @@
 
   function formatTime(dateString) {
     const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleDateString([], { 
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
   function enforceNumberInput(event) {
@@ -140,6 +151,21 @@
 </script>
 
 <style>
+  /* Optional styling for disabled inputs */
+  .disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Ensure the set duration button has no hover effects when disabled */
+  .set-duration-button:disabled {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .set-duration-button:disabled:hover {
+    background-color: inherit;
+  }
 </style>
 
 <div class="min-h-screen bg-gray-900 text-white py-6">
@@ -169,20 +195,27 @@
       {#each $machines as machine (machine.id)}
         <div class="machine">
           <h2 class="h2">{machine.name}</h2>
-          <label class="block mb-2">
-            <span class="text-sm font-medium">{translations[$language].status}:</span>
-            <select
-              class="state-select" 
-              bind:value={machine.status} 
-              on:change={(e) => handleStatusChange(machine, e)}>
-                <option value="working">{translations[$language].working}</option>
-                <option value="broken">{translations[$language].broken}</option>
-            </select>
-          </label>
+          <div class="mt-4">
+            <label class="block mb-2">
+              <span class="text-sm font-medium">{translations[$language].status}:</span>
+              <select
+                class="state-select" 
+                bind:value={machine.status} 
+                on:change={(e) => handleStatusChange(machine, e)}>
+                  <option value="working">{translations[$language].working}</option>
+                  <option value="broken">{translations[$language].broken}</option>
+              </select>
+            </label>
+            {#if machine.last_state_change}
+              <p class="text-sm text-gray-400 mt-1">
+                {translations[$language].lastStateChange}: {formatTime(machine.last_state_change)}
+              </p>
+            {/if}
+          </div>
           <div class="mt-4">
             <label class="block mb-4">
               <span class="text-sm font-medium">{translations[$language].usageFor}:</span>
-              <div class="time-input-container">
+              <div class="time-input-container" class:opacity-50={machine.status === 'broken'}>
                 <input 
                   type="number" 
                   min="0" 
@@ -192,6 +225,7 @@
                   class="time-input" 
                   bind:value={machine.hours} 
                   on:keydown={enforceNumberInput}
+                  disabled={machine.status === 'broken'}
                 />
                 <input 
                   type="number" 
@@ -202,10 +236,12 @@
                   class="time-input" 
                   bind:value={machine.minutes} 
                   on:keydown={enforceNumberInput}
+                  disabled={machine.status === 'broken'}
                 />
                 <button 
                   class="set-duration-button" 
                   on:click={() => handleUsageDurationChange(machine, parseInt(machine.hours), parseInt(machine.minutes))}
+                  disabled={machine.status === 'broken'}
                 >
                   {translations[$language].setDuration}
                 </button>
@@ -246,8 +282,7 @@
       <p class="text-sm text-gray-500">{translations[$language].createdBy}</p>
       <hr class="my-6">
       <p class="text-gray-400 mb-4">{translations[$language].about}</p>
-      <p 
-        class="text-blue-400">
+      <p class="text-blue-400">
          <a
           href="https://github.com/h43lb1t0/MB1-Waschmaschienen" 
           target="_blank" 
