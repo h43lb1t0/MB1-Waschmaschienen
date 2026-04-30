@@ -190,6 +190,13 @@
       <p class="dev">{translations[$language].devMode}</p>
     {/if}
 
+    <div class="mb-6 mt-4 flex items-center gap-3">
+      <span class="text-sm font-medium text-gray-300">API/Backend Status:</span>
+      <a href="https://uptime.haelbich.org/status/mb1" target="_blank" rel="noopener noreferrer" class="inline-block hover:opacity-80 transition-opacity">
+        <img src="https://uptime.haelbich.org/api/badge/10/uptime" alt="API Uptime Badge">
+      </a>
+    </div>
+
     {#if $machines.length === 0}
       <p class="text-gray-500">{translations[$language].noMachines}</p>
     {/if}
@@ -293,6 +300,7 @@
             Source code: Github
         </a>
       </p>
+
       <hr class="my-6">
       <div>
         <h4 class="text-lg font-semibold mb-2">Impressum:</h4>
